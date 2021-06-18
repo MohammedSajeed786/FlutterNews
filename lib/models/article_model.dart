@@ -8,3 +8,4 @@ class Articlemodel {
       this.url,
       this.urltoimage});
 }
+//defines what a article contain

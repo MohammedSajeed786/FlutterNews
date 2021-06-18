@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-
+//when we click a article it loads 
 class ArticleView extends StatefulWidget {
   final String url;
   ArticleView({this.url});

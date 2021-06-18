@@ -1,0 +1,6 @@
+flutter_native_splash:
+
+  color: "808B96"
+  fullscreen: true
+  image: assets/icons/abcd.jpg
+  # image: https://cdn.dribbble.com/users/1359053/screenshots/3719173/icon5.png

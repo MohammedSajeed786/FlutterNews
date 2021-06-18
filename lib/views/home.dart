@@ -1,5 +1,5 @@
 import 'dart:io';
-
+import 'dart:ui';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +13,7 @@ import 'package:news/theme.dart' as tm;
 import 'package:provider/provider.dart';
 import '../changetheme.dart';
 import 'category_news.dart';
+import 'package:share_plus/share_plus.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -27,11 +28,13 @@ class _HomeState extends State<Home> {
   void initState() {
     // TODO: implement initState
     super.initState();
+    //categories is a list containing category names and photos
     categories = getCategories();
     getNews();
   }
 
-  getNews() async {
+//articles will contain headlines news list
+  Future<void> getNews() async {
     News newsdata = News();
     await newsdata.getnews();
     articles = newsdata.news;
@@ -43,6 +46,7 @@ class _HomeState extends State<Home> {
   bool status = false;
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<tm.ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -66,7 +70,10 @@ class _HomeState extends State<Home> {
       body: isloading
           ? Center(
               child: Container(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                    backgroundColor: themeProvider.themeMode == ThemeMode.dark
+                        ? Colors.grey
+                        : Colors.blue),
               ),
             )
           : SingleChildScrollView(
@@ -75,6 +82,7 @@ class _HomeState extends State<Home> {
               child: Container(
                 child: Column(
                   children: [
+                    //CATEGORY LIST
                     Container(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       height: 70,
@@ -86,15 +94,18 @@ class _HomeState extends State<Home> {
                             return CategoryTile(
                               image: categories[index].image,
                               name: categories[index].name,
+                              //categories=[0,1,2,3]
                             );
                           }),
                     ),
+                    //CATEGORY LIST
                     Container(
                       padding: EdgeInsets.only(top: 16),
                       child: ListView.builder(
                           shrinkWrap: true,
                           //  physics: NeverScrollableScrollPhysics(),
-                          physics: ClampingScrollPhysics(),
+                          //physics: ClampingScrollPhysics(),
+                          physics: BouncingScrollPhysics(),
                           scrollDirection: Axis.vertical,
                           itemCount: articles.length,
                           itemBuilder: (context, index) {
@@ -114,6 +125,7 @@ class _HomeState extends State<Home> {
   }
 }
 
+//defines how a category will look
 class CategoryTile extends StatelessWidget {
   final String image, name;
   CategoryTile({this.image, this.name});
@@ -132,6 +144,7 @@ class CategoryTile extends StatelessWidget {
         margin: EdgeInsets.only(right: 16),
         child: Stack(
           children: [
+            //instead of having border decoration in a container to give circu;ar border we have cliprrect
             ClipRRect(
               borderRadius: BorderRadius.circular(6),
               child: CachedNetworkImage(
@@ -163,44 +176,194 @@ class CategoryTile extends StatelessWidget {
   }
 }
 
+//represents how a headline article will appear
 class Blogtile extends StatelessWidget {
   final String title, image, desc, url;
   Blogtile({this.title, this.desc, this.image, this.url});
   @override
   Widget build(BuildContext context) {
-                final themeProvider = Provider.of<tm.ThemeProvider>(context);
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => ArticleView(url: url)));
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 16),
-        child: Column(
+    final themeProvider = Provider.of<tm.ThemeProvider>(context);
+    return Card(
+        margin: EdgeInsets.only(bottom: 15),
+        color: themeProvider.themeMode == ThemeMode.dark
+            ? Colors.black
+            : Colors.white,
+        shadowColor: themeProvider.themeMode == ThemeMode.dark
+            ? Colors.grey
+            : Colors.blue,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(children: [
+            InkWell(
+              onTap: () {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => ArticleView(url: url)));
+              },
+              child: Column(
+                children: [
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.network(image, errorBuilder:
+                          (BuildContext context, Object exception,
+                              StackTrace stackTrace) {
+                        return Text(' ');
+                      })),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: themeProvider.themeMode == ThemeMode.dark
+                            ? Colors.white70
+                            : Colors.black87,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Text(desc,
+                      style: TextStyle(
+                          color: themeProvider.themeMode == ThemeMode.dark
+                              ? Colors.white54
+                              : Colors.black54)),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
+            ),
+            Row(
+              // mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text("Found Something New",
+                    style: TextStyle(
+                      color: themeProvider.themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black87,
+                    )),
+                SizedBox(
+                  width: 10,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.share,
+                    size: 23,
+                  ),
+                  onPressed: () {
+                    Share.share(url, subject: "Hey do you know this");
+                  },
+                  color: themeProvider.themeMode == ThemeMode.dark
+                      ? Colors.white70
+                      : Colors.black87,
+                )
+              ],
+            ),
+          ]),
+        ));
+
+    /*return Column(
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ArticleView(url: url)));
+          },
+          child: Container(
+            // margin: EdgeInsets.only(bottom: 16),
+            child: Column(
+              children: [
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //    IconButton(icon: Icon(Icons.share,size: 23,), onPressed: (){},color: themeProvider.themeMode == ThemeMode.dark
+                //           ? Colors.white70
+                //           : Colors.black87,)
+                //   ],
+                // ),
+                // SizedBox(height: 6,),
+                ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.network(image, errorBuilder:
+                        (BuildContext context, Object exception,
+                            StackTrace stackTrace) {
+                      return Text(' ');
+                    })),
+
+                SizedBox(
+                  height: 8,
+                ),
+                Text(
+                  title,
+                  style: TextStyle(
+                      fontSize: 18,
+                      color: themeProvider.themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black87,
+                      fontWeight: FontWeight.w500),
+                ),
+                SizedBox(
+                  height: 8,
+                ),
+               
+               
+                // SizedBox(
+                //   height: 4,
+                // ),
+                // Row(
+                //  // mainAxisAlignment: MainAxisAlignment.end,
+                //   children: [
+                //     Text("Found Something New",style: TextStyle(color: themeProvider.themeMode == ThemeMode.dark
+                //           ? Colors.white70
+                //           : Colors.black87,) ),
+                //   SizedBox(
+                //   width: 186,
+                // ),
+                //    IconButton(icon: Icon(Icons.share,size: 23,), onPressed: (){},color: themeProvider.themeMode == ThemeMode.dark
+                //           ? Colors.white70
+                //           : Colors.black87,)
+                //  ],
+                //  ),
+              ],
+            ),
+          ),
+        ),
+        Row(
+          // mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network(image, errorBuilder: (BuildContext context,
-                    Object exception, StackTrace stackTrace) {
-                  return Text(' ');
-                })),
+            Text("Found Something New?",
+                style: TextStyle(
+                  color: themeProvider.themeMode == ThemeMode.dark
+                      ? Colors.white70
+                      : Colors.black87,
+                )),
             SizedBox(
-              height: 8,
+              width: 180,
             ),
-            Text(
-              title,
-              style: TextStyle(
-                  fontSize: 18,
-                  color:themeProvider.themeMode==ThemeMode.dark?Colors.white70 :Colors.black87,
-                  fontWeight: FontWeight.w500),
-            ),
-            SizedBox(
-              height: 8,
-            ),
-            Text(desc, style: TextStyle(color: themeProvider.themeMode==ThemeMode.dark?Colors.white54:Colors.black54)),
+            IconButton(
+              icon: Icon(
+                Icons.share,
+                size: 23,
+              ),
+              onPressed: () {
+                Share.share(url,subject: "Hey do you know this");
+              },
+              color: themeProvider.themeMode == ThemeMode.dark
+                  ? Colors.white70
+                  : Colors.black87,
+            )
           ],
         ),
-      ),
-    );
+        SizedBox(
+          height: 10,
+        ),
+      ],
+    );*/
   }
 }

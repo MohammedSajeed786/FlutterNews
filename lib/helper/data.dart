@@ -1,5 +1,6 @@
 import 'package:news/models/category_model.dart';
-
+//top of homepage we have
+//list of categories  with names with photos
 List<Category_model> getCategories() {
   List<Category_model> category_model = new List<Category_model>();
   Category_model cm = new Category_model();

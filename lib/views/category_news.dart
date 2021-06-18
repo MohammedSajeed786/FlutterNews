@@ -3,6 +3,7 @@ import 'package:news/helper/news.dart';
 import 'package:news/models/article_model.dart';
 import 'package:news/theme.dart' as tm;
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import 'article_view.dart';
 
@@ -23,7 +24,7 @@ class _CategoryNewsState extends State<CategoryNews> {
     getCategoryNews();
     isloading = false;
   }
-
+//articles will contain news articles of a particular category
   getCategoryNews() async {
     CategoriNews newsdata = CategoriNews();
     await newsdata.getnews(widget.category);
@@ -98,44 +99,81 @@ class Blogtile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<tm.ThemeProvider>(context);
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => ArticleView(url: url)));
-      },
-      child: Container(
-        margin: EdgeInsets.only(bottom: 16),
-        child: Column(
-          children: [
-            ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: Image.network(image, errorBuilder: (BuildContext context,
-                    Object exception, StackTrace stackTrace) {
-                  return Text(' ');
-                })),
-            SizedBox(
-              height: 8,
+     return Card(
+        margin: EdgeInsets.only(bottom: 15),
+        color: themeProvider.themeMode == ThemeMode.dark?Colors.black:Colors.white,
+        shadowColor: themeProvider.themeMode == ThemeMode.dark?Colors.grey:Colors.blue,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(children: [
+            InkWell(
+              onTap: () {
+                Navigator.push(context,
+                MaterialPageRoute(builder: (context) => ArticleView(url: url)));
+              },
+              child: Column(
+                children: [
+                  ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: Image.network(image, errorBuilder:
+                          (BuildContext context, Object exception,
+                              StackTrace stackTrace) {
+                        return Text(' ');
+                      })),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Text(
+                    title,
+                    style: TextStyle(
+                        fontSize: 18,
+                        color: themeProvider.themeMode == ThemeMode.dark
+                            ? Colors.white70
+                            : Colors.black87,
+                        fontWeight: FontWeight.w500),
+                  ),
+                  SizedBox(
+                    height: 8,
+                  ),
+                  Text(desc,
+                      style: TextStyle(
+                          color: themeProvider.themeMode == ThemeMode.dark
+                              ? Colors.white54
+                              : Colors.black54)),
+                  SizedBox(
+                    height: 8,
+                  ),
+                ],
+              ),
             ),
-            Text(
-              title,
-              style: TextStyle(
-                  fontSize: 18,
+            Row(
+              // mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Text("Found Something New",
+                    style: TextStyle(
+                      color: themeProvider.themeMode == ThemeMode.dark
+                          ? Colors.white70
+                          : Colors.black87,
+                    )),
+                SizedBox(
+                  width: 10,
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.share,
+                    size: 23,
+                  ),
+                  onPressed: () {Share.share(url,subject: "Hey do you know this");},
                   color: themeProvider.themeMode == ThemeMode.dark
-                      ? Colors.white54
+                      ? Colors.white70
                       : Colors.black87,
-                  fontWeight: FontWeight.w500),
+                )
+              ],
             ),
-            SizedBox(
-              height: 8,
-            ),
-            Text(desc,
-                style: TextStyle(
-                    color: themeProvider.themeMode == ThemeMode.dark
-                        ? Colors.white54
-                        : Colors.black54)),
-          ],
-        ),
-      ),
-    );
+          ]),
+        ));
   }
 }
